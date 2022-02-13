@@ -34,6 +34,12 @@ func sendSimpleConfig(client mqtt.Client, topic string, config config.SimpleConf
 	t.Wait()
 }
 
+func sendFanConfig(client mqtt.Client, topic string, config config.Fan) {
+	d, _ := json.Marshal(config)
+	t := client.Publish(topic, 0, false, d)
+	t.Wait()
+}
+
 func setUpConfig(client mqtt.Client) {
 	sendSimpleConfig(client, "homeassistant/sensor/nilan/1/config", config.RoomTemperature())
 	sendSimpleConfig(client, "homeassistant/sensor/nilan/2/config", config.OutdoorTemperature())
@@ -42,11 +48,18 @@ func setUpConfig(client mqtt.Client) {
 	sendSimpleConfig(client, "homeassistant/sensor/nilan/5/config", config.DHWTemperatureTop())
 	sendSimpleConfig(client, "homeassistant/sensor/nilan/6/config", config.DHWTemperatureBottom())
 	sendSimpleConfig(client, "homeassistant/sensor/nilan/7/config", config.SupplyFlowTemperature())
+	sendFanConfig(client, "homeassistant/fan/nilan/config", config.NilanVentilation())
 }
 
 func publishReadings(client mqtt.Client, readings internal.ReadingsDTO) {
 	d, _ := json.Marshal(readings)
 	t := client.Publish("homeassistant/sensor/nilan/state", 0, false, d)
+	t.Wait()
+}
+
+func publishVentilationState(client mqtt.Client, ventilationState internal.VentilationDTO) {
+	d, _ := json.Marshal(ventilationState)
+	t := client.Publish("homeassistant/fan/nilan/state", 0, false, d)
 	t.Wait()
 }
 
@@ -59,9 +72,14 @@ func main() {
 	setUpConfig(mqttC)
 
 	for {
-		r := c.FetchReadings()
-		dto := internal.CreateReadingsDTO(r)
-		publishReadings(mqttC, dto)
+		readings := c.FetchReadings()
+		readingsDTO := internal.CreateReadingsDTO(readings)
+		publishReadings(mqttC, readingsDTO)
+
+		settings := c.FetchSettings()
+		ventilationDTO := internal.CreateVentilationDTO(settings)
+		publishVentilationState(mqttC, ventilationDTO)
+
 		time.Sleep(time.Minute)
 	}
 }
