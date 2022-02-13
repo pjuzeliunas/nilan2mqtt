@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -21,11 +22,52 @@ func mqttClient(brokerAddress string, port int, username string, password string
 	opts.OnConnectionLost = func(client mqtt.Client, err error) {
 		panic(err)
 	}
+	opts.SetDefaultPublishHandler(processMessage)
 	c := mqtt.NewClient(opts)
 	if token := c.Connect(); token.Wait() && token.Error() != nil {
 		panic(token.Error())
 	}
 	return c
+}
+
+func subscribeForTopics(client mqtt.Client) {
+	topics := []string{
+		"homeassistant/fan/nilan/set",
+		"homeassistant/fan/nilan/speed/set",
+		"homeassistant/fan/nilan/mode/set",
+	}
+	for _, t := range topics {
+		token := client.Subscribe(t, 1, nil)
+		token.Wait()
+	}
+}
+
+func processMessage(client mqtt.Client, msg mqtt.Message) {
+	payload := string(msg.Payload())
+	switch msg.Topic() {
+	case "homeassistant/fan/nilan/set":
+		settings := nilan.Settings{
+			VentilationOnPause: boolAddr(payload == "OFF"),
+		}
+		NilanController.SendSettings(settings)
+	case "homeassistant/fan/nilan/speed/set":
+		speed, _ := strconv.Atoi(payload)
+		settings := nilan.Settings{
+			FanSpeed: internal.FanSpeed(speed),
+		}
+		NilanController.SendSettings(settings)
+	case "homeassistant/fan/nilan/mode/set":
+		settings := nilan.Settings{
+			VentilationMode: internal.Mode(payload),
+		}
+		NilanController.SendSettings(settings)
+	}
+	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
+}
+
+func boolAddr(b bool) *bool {
+	boolVar := b
+	return &boolVar
 }
 
 func sendSimpleConfig(client mqtt.Client, topic string, config config.SimpleConfig) {
@@ -63,23 +105,24 @@ func publishVentilationState(client mqtt.Client, ventilationState internal.Venti
 	t.Wait()
 }
 
-func main() {
-	c := nilan.Controller{Config: nilan.Config{NilanAddress: "192.168.1.31:502"}}
+var NilanController nilan.Controller = nilan.Controller{Config: nilan.Config{NilanAddress: "192.168.1.31:502"}}
 
+func main() {
 	mqttC := mqttClient("192.168.1.18", 1883, "", "")
 	defer mqttC.Disconnect(0)
 
 	setUpConfig(mqttC)
+	subscribeForTopics(mqttC)
 
 	for {
-		readings := c.FetchReadings()
+		readings := NilanController.FetchReadings()
 		readingsDTO := internal.CreateReadingsDTO(readings)
 		publishReadings(mqttC, readingsDTO)
 
-		settings := c.FetchSettings()
+		settings := NilanController.FetchSettings()
 		ventilationDTO := internal.CreateVentilationDTO(settings)
 		publishVentilationState(mqttC, ventilationDTO)
 
-		time.Sleep(time.Minute)
+		time.Sleep(5 * time.Second)
 	}
 }

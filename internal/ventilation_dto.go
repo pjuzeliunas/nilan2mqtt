@@ -49,3 +49,41 @@ func ventilationMode(settings nilan.Settings) string {
 		return "auto"
 	}
 }
+
+func FanSpeed(speed int) *nilan.FanSpeed {
+	switch speed {
+	case 1:
+		return fanSpeedAddr(nilan.FanSpeedLow)
+	case 2:
+		return fanSpeedAddr(nilan.FanSpeedNormal)
+	case 3:
+		return fanSpeedAddr(nilan.FanSpeedHigh)
+	case 4:
+		return fanSpeedAddr(nilan.FanSpeedVeryHigh)
+	default:
+		return nil
+	}
+}
+
+func fanSpeedAddr(fanSpeed nilan.FanSpeed) *nilan.FanSpeed {
+	speed := fanSpeed
+	return &speed
+}
+
+func Mode(mode string) *int {
+	switch mode {
+	case "auto":
+		return intAddr(0)
+	case "cooling":
+		return intAddr(1)
+	case "heating":
+		return intAddr(2)
+	default:
+		return nil
+	}
+}
+
+func intAddr(i int) *int {
+	iVar := i
+	return &iVar
+}

@@ -13,7 +13,7 @@ type Fan struct {
 	SpeedRangeMin                int      `json:"speed_range_min"`
 	SpeedRangeMax                int      `json:"speed_range_max"`
 	StateTopic                   string   `json:"state_topic"`
-	StateValueTemplate           string   `json:"state_value_template "`
+	StateValueTemplate           string   `json:"state_value_template"`
 	UniqueId                     string   `json:"unique_id"`
 }
 
