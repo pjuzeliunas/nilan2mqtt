@@ -3,7 +3,10 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"os"
+	"os/signal"
 	"strconv"
+	"syscall"
 	"time"
 
 	mqtt "github.com/eclipse/paho.mqtt.golang"
@@ -105,6 +108,44 @@ func publishVentilationState(client mqtt.Client, ventilationState internal.Venti
 	t.Wait()
 }
 
+func startFetchingReadings(controller nilan.Controller, readingsChan chan nilan.Readings) {
+	for {
+		readings, err := controller.FetchReadings()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		readingsChan <- *readings
+		time.Sleep(time.Minute)
+	}
+}
+
+func startFetchingSettings(controller nilan.Controller, settingsChan chan nilan.Settings) {
+	for {
+		settings, err := controller.FetchSettings()
+		if err != nil {
+			fmt.Println(err)
+			continue
+		}
+		settingsChan <- *settings
+		time.Sleep(time.Minute)
+	}
+}
+
+func publishReadingsFromChan(readingsChan chan nilan.Readings, client mqtt.Client) {
+	for readings := range readingsChan {
+		readingsDTO := internal.CreateReadingsDTO(readings)
+		publishReadings(client, readingsDTO)
+	}
+}
+
+func publishSettingsFromChan(settingsChan chan nilan.Settings, client mqtt.Client) {
+	for settings := range settingsChan {
+		ventilationDTO := internal.CreateVentilationDTO(settings)
+		publishVentilationState(client, ventilationDTO)
+	}
+}
+
 var NilanController nilan.Controller = nilan.Controller{Config: nilan.Config{NilanAddress: "192.168.1.31:502"}}
 
 func main() {
@@ -114,15 +155,15 @@ func main() {
 	setUpConfig(mqttC)
 	subscribeForTopics(mqttC)
 
-	for {
-		readings := NilanController.FetchReadings()
-		readingsDTO := internal.CreateReadingsDTO(readings)
-		publishReadings(mqttC, readingsDTO)
+	readingsChan := make(chan nilan.Readings)
+	go startFetchingReadings(NilanController, readingsChan)
+	go publishReadingsFromChan(readingsChan, mqttC)
 
-		settings := NilanController.FetchSettings()
-		ventilationDTO := internal.CreateVentilationDTO(settings)
-		publishVentilationState(mqttC, ventilationDTO)
+	settingsChan := make(chan nilan.Settings)
+	go startFetchingSettings(NilanController, settingsChan)
+	go publishSettingsFromChan(settingsChan, mqttC)
 
-		time.Sleep(5 * time.Second)
-	}
+	quitChannel := make(chan os.Signal, 1)
+	signal.Notify(quitChannel, syscall.SIGINT, syscall.SIGTERM)
+	<-quitChannel
 }
