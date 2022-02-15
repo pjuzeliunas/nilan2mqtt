@@ -9,10 +9,15 @@ import (
 )
 
 func main() {
+	nilanAddr := os.Getenv("NILAN_ADDR")
+	mqttAddr := os.Getenv("MQTT_ADDR")
+	mqttUser := os.Getenv("MQTT_USER")
+	mqttPwd := os.Getenv("MQTT_PWD")
+
 	adapter := adapter.NewNilanMQTTAdapter(
-		"192.168.1.31:502",  // Nilan address
-		"192.168.1.18:1883", // MQTT broker address
-		"", "",
+		nilanAddr, // Nilan address
+		mqttAddr,  // MQTT broker address
+		mqttUser, mqttPwd,
 	)
 	adapter.Start()
 
