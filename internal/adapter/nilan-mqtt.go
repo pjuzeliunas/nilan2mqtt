@@ -189,7 +189,6 @@ func (a *NilanMQTTAdapter) startPublishingReadings() {
 func (a *NilanMQTTAdapter) publishReadings(readings dto.Readings) {
 	d, _ := json.Marshal(readings)
 	t := a.mqttClient.Publish("homeassistant/sensor/nilan/state", 0, false, d)
-	fmt.Println("publishing readings")
 	t.Wait()
 }
 
@@ -203,6 +202,5 @@ func (a *NilanMQTTAdapter) startPublishingSettings() {
 func (a *NilanMQTTAdapter) publishVentilationState(ventilationState dto.Ventilation) {
 	d, _ := json.Marshal(ventilationState)
 	t := a.mqttClient.Publish("homeassistant/fan/nilan/state", 0, false, d)
-	fmt.Println("publishing settings")
 	t.Wait()
 }
