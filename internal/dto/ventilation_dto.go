@@ -25,6 +25,9 @@ func ventilationState(settings nilan.Settings) string {
 }
 
 func ventilationSpeed(settings nilan.Settings) int {
+	if *settings.VentilationOnPause {
+		return 0
+	}
 	switch *settings.FanSpeed {
 	case nilan.FanSpeedLow:
 		return 1

@@ -91,8 +91,12 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 		a.fetchSettings()
 	case "homeassistant/fan/nilan/speed/set":
 		speed, _ := strconv.Atoi(payload)
-		settings := nilan.Settings{
-			FanSpeed: dto.FanSpeed(speed),
+		settings := nilan.Settings{}
+		if speed == 0 {
+			settings.VentilationOnPause = boolAddr(true)
+		} else {
+			settings.VentilationOnPause = boolAddr(false)
+			settings.FanSpeed = dto.FanSpeed(speed)
 		}
 		a.nilanController.SendSettings(settings)
 		a.fetchSettings()
