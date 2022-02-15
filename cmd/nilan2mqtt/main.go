@@ -12,8 +12,8 @@ import (
 	mqtt "github.com/eclipse/paho.mqtt.golang"
 	"github.com/google/uuid"
 	"github.com/pjuzeliunas/nilan"
-	"github.com/pjuzeliunas/nilan2mqtt/internal"
 	"github.com/pjuzeliunas/nilan2mqtt/internal/config"
+	"github.com/pjuzeliunas/nilan2mqtt/internal/dto"
 )
 
 func mqttClient(brokerAddress string, port int, username string, password string) mqtt.Client {
@@ -56,12 +56,12 @@ func processMessage(client mqtt.Client, msg mqtt.Message) {
 	case "homeassistant/fan/nilan/speed/set":
 		speed, _ := strconv.Atoi(payload)
 		settings := nilan.Settings{
-			FanSpeed: internal.FanSpeed(speed),
+			FanSpeed: dto.FanSpeed(speed),
 		}
 		NilanController.SendSettings(settings)
 	case "homeassistant/fan/nilan/mode/set":
 		settings := nilan.Settings{
-			VentilationMode: internal.Mode(payload),
+			VentilationMode: dto.Mode(payload),
 		}
 		NilanController.SendSettings(settings)
 	}
@@ -96,13 +96,13 @@ func setUpConfig(client mqtt.Client) {
 	sendFanConfig(client, "homeassistant/fan/nilan/config", config.NilanVentilation())
 }
 
-func publishReadings(client mqtt.Client, readings internal.ReadingsDTO) {
+func publishReadings(client mqtt.Client, readings dto.Readings) {
 	d, _ := json.Marshal(readings)
 	t := client.Publish("homeassistant/sensor/nilan/state", 0, false, d)
 	t.Wait()
 }
 
-func publishVentilationState(client mqtt.Client, ventilationState internal.VentilationDTO) {
+func publishVentilationState(client mqtt.Client, ventilationState dto.Ventilation) {
 	d, _ := json.Marshal(ventilationState)
 	t := client.Publish("homeassistant/fan/nilan/state", 0, false, d)
 	t.Wait()
@@ -134,14 +134,14 @@ func startFetchingSettings(controller nilan.Controller, settingsChan chan nilan.
 
 func publishReadingsFromChan(readingsChan chan nilan.Readings, client mqtt.Client) {
 	for readings := range readingsChan {
-		readingsDTO := internal.CreateReadingsDTO(readings)
+		readingsDTO := dto.CreateReadingsDTO(readings)
 		publishReadings(client, readingsDTO)
 	}
 }
 
 func publishSettingsFromChan(settingsChan chan nilan.Settings, client mqtt.Client) {
 	for settings := range settingsChan {
-		ventilationDTO := internal.CreateVentilationDTO(settings)
+		ventilationDTO := dto.CreateVentilationDTO(settings)
 		publishVentilationState(client, ventilationDTO)
 	}
 }
