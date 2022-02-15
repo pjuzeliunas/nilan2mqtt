@@ -3,6 +3,7 @@ package adapter
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"strconv"
 	"time"
 
@@ -36,6 +37,8 @@ func NewNilanMQTTAdapter(nilanAddress string, mqttBrokerAddress string, mqttUser
 func (a *NilanMQTTAdapter) Start() {
 	a.running = true
 	a.tryConnectToMQTT(0)
+	log.Default().Println("connection to MQTT broker established")
+	log.Default().Println("sending HA configuration via MQTT")
 	a.sendConfig()
 
 	a.readingsChan = make(chan nilan.Readings)
@@ -49,6 +52,7 @@ func (a *NilanMQTTAdapter) Start() {
 }
 
 func (a *NilanMQTTAdapter) Stop() {
+	log.Default().Println("stopping")
 	a.running = false
 	a.mqttClient.Disconnect(5000)
 }
@@ -80,6 +84,7 @@ func (a *NilanMQTTAdapter) subscribeForTopics() {
 }
 
 func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) {
+	log.Default().Printf("received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 	payload := string(msg.Payload())
 	switch msg.Topic() {
 	case "homeassistant/fan/nilan/set":
@@ -106,7 +111,6 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 		a.nilanController.SendSettings(settings)
 		a.fetchSettings()
 	}
-	fmt.Printf("Received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 }
 
 func boolAddr(b bool) *bool {
@@ -162,18 +166,20 @@ func (a *NilanMQTTAdapter) startFetchingNilanData() {
 }
 
 func (a *NilanMQTTAdapter) fetchReadings() {
+	log.Default().Println("fetching readings from Nilan")
 	readings, err := a.nilanController.FetchReadings()
 	if err != nil {
-		fmt.Println(err)
+		log.Default().Printf("error (fetch readings) - %s\n", err)
 		return
 	}
 	a.readingsChan <- *readings
 }
 
 func (a *NilanMQTTAdapter) fetchSettings() {
+	log.Default().Println("fetching settings from Nilan")
 	settings, err := a.nilanController.FetchSettings()
 	if err != nil {
-		fmt.Println(err)
+		log.Default().Printf("error (fetch settings) - %s\n", err)
 		return
 	}
 	a.settingsChan <- *settings
@@ -187,6 +193,7 @@ func (a *NilanMQTTAdapter) startPublishingReadings() {
 }
 
 func (a *NilanMQTTAdapter) publishReadings(readings dto.Readings) {
+	log.Default().Println("publishing Nilan readings via MQTT")
 	d, _ := json.Marshal(readings)
 	t := a.mqttClient.Publish("homeassistant/sensor/nilan/state", 0, false, d)
 	t.Wait()
@@ -200,6 +207,7 @@ func (a *NilanMQTTAdapter) startPublishingSettings() {
 }
 
 func (a *NilanMQTTAdapter) publishVentilationState(ventilationState dto.Ventilation) {
+	log.Default().Println("publishing Nilan settings via MQTT")
 	d, _ := json.Marshal(ventilationState)
 	t := a.mqttClient.Publish("homeassistant/fan/nilan/state", 0, false, d)
 	t.Wait()
