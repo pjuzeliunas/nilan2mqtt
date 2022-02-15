@@ -35,6 +35,7 @@ func NewNilanMQTTAdapter(nilanAddress string, mqttBrokerAddress string, mqttUser
 
 func (a *NilanMQTTAdapter) Start() {
 	a.running = true
+	a.tryConnectToMQTT(0)
 	a.sendConfig()
 
 	a.readingsChan = make(chan nilan.Readings)
@@ -50,6 +51,7 @@ func (a *NilanMQTTAdapter) Start() {
 
 func (a *NilanMQTTAdapter) Stop() {
 	a.running = false
+	a.mqttClient.Disconnect(5000)
 }
 
 func (a *NilanMQTTAdapter) setUpController(address string) {
@@ -63,9 +65,7 @@ func (a *NilanMQTTAdapter) setUpMQTTClient(address string, username string, pass
 	opts.SetUsername(username)
 	opts.SetPassword(password)
 	opts.OnConnectionLost = a.reconnect
-
 	a.mqttClient = mqtt.NewClient(opts)
-	a.tryConnectToMQTT(0)
 }
 
 func (a *NilanMQTTAdapter) subscribeForTopics() {
