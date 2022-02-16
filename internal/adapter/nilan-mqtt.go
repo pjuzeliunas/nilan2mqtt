@@ -77,9 +77,9 @@ func (a *NilanMQTTAdapter) setUpMQTTClient(address string, username string, pass
 
 func (a *NilanMQTTAdapter) subscribeForTopics() {
 	topics := []string{
-		"homeassistant/fan/nilan/set",
-		"homeassistant/fan/nilan/speed/set",
-		"homeassistant/fan/nilan/mode/set",
+		"nilan/fan/set",
+		"nilan/fan/speed/set",
+		"nilan/fan/mode/set",
 	}
 	for _, t := range topics {
 		token := a.mqttClient.Subscribe(t, 1, a.processMessage)
@@ -91,13 +91,13 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 	log.Default().Printf("received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 	payload := string(msg.Payload())
 	switch msg.Topic() {
-	case "homeassistant/fan/nilan/set":
+	case "nilan/fan/set":
 		settings := nilan.Settings{
 			VentilationOnPause: boolAddr(payload == "OFF"),
 		}
 		a.nilanController.SendSettings(settings)
 		a.fetchSettings()
-	case "homeassistant/fan/nilan/speed/set":
+	case "nilan/fan/speed/set":
 		speed, _ := strconv.Atoi(payload)
 		settings := nilan.Settings{}
 		if speed == 0 {
@@ -108,7 +108,7 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 		}
 		a.nilanController.SendSettings(settings)
 		a.fetchSettings()
-	case "homeassistant/fan/nilan/mode/set":
+	case "nilan/fan/mode/set":
 		settings := nilan.Settings{
 			VentilationMode: dto.Mode(payload),
 		}
@@ -196,7 +196,7 @@ func (a *NilanMQTTAdapter) startPublishingReadings() {
 
 func (a *NilanMQTTAdapter) publishReadings(readings dto.Readings) {
 	d, _ := json.Marshal(readings)
-	t := a.mqttClient.Publish("homeassistant/sensor/nilan/state", 0, false, d)
+	t := a.mqttClient.Publish("nilan/readings/state", 0, false, d)
 	t.Wait()
 }
 
@@ -209,6 +209,6 @@ func (a *NilanMQTTAdapter) startPublishingSettings() {
 
 func (a *NilanMQTTAdapter) publishVentilationState(ventilationState dto.Ventilation) {
 	d, _ := json.Marshal(ventilationState)
-	t := a.mqttClient.Publish("homeassistant/fan/nilan/state", 0, false, d)
+	t := a.mqttClient.Publish("nilan/fan/state", 0, false, d)
 	t.Wait()
 }

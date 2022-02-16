@@ -20,17 +20,17 @@ type Fan struct {
 func NilanVentilation() Fan {
 	return Fan{
 		Name:                         "NILAN Ventilation",
-		CommandTopic:                 "homeassistant/fan/nilan/set",
-		PercentageStateTopic:         "homeassistant/fan/nilan/state",
+		CommandTopic:                 "nilan/fan/set",
+		PercentageStateTopic:         "nilan/fan/state",
 		PercentageStateValueTemplate: "{{ value_json.speed }}",
-		PercentageCommandTopic:       "homeassistant/fan/nilan/speed/set",
-		PresetModeStateTopic:         "homeassistant/fan/nilan/state",
+		PercentageCommandTopic:       "nilan/fan/speed/set",
+		PresetModeStateTopic:         "nilan/fan/state",
 		PresetModeValueTemplate:      "{{ value_json.mode }}",
-		PresetModeCommandTopic:       "homeassistant/fan/nilan/mode/set",
+		PresetModeCommandTopic:       "nilan/fan/mode/set",
 		PresetModes:                  []string{"auto", "heating", "cooling"},
 		SpeedRangeMin:                1,
 		SpeedRangeMax:                4,
-		StateTopic:                   "homeassistant/fan/nilan/state",
+		StateTopic:                   "nilan/fan/state",
 		StateValueTemplate:           "{{ value_json.state }}",
 		UniqueId:                     "3d5c2bc2-a192-4c4a-9171-a23b4ba6c16c",
 	}
