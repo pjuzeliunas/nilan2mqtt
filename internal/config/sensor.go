@@ -1,6 +1,6 @@
 package config
 
-type SimpleConfig struct {
+type Sensor struct {
 	DeviceClass       string `json:"device_class"`
 	Device            Device `json:"device"`
 	Name              string `json:"name"`
@@ -10,8 +10,8 @@ type SimpleConfig struct {
 	UniqueId          string `json:"unique_id"`
 }
 
-func RoomTemperature() SimpleConfig {
-	return SimpleConfig{
+func RoomTemperature() Sensor {
+	return Sensor{
 		DeviceClass:       "temperature",
 		Device:            NilanDevice(),
 		Name:              "NILAN Room temperature",
@@ -22,8 +22,8 @@ func RoomTemperature() SimpleConfig {
 	}
 }
 
-func OutdoorTemperature() SimpleConfig {
-	return SimpleConfig{
+func OutdoorTemperature() Sensor {
+	return Sensor{
 		DeviceClass:       "temperature",
 		Device:            NilanDevice(),
 		Name:              "NILAN Outdoor temperature",
@@ -34,8 +34,8 @@ func OutdoorTemperature() SimpleConfig {
 	}
 }
 
-func Humidity() SimpleConfig {
-	return SimpleConfig{
+func Humidity() Sensor {
+	return Sensor{
 		DeviceClass:       "humidity",
 		Device:            NilanDevice(),
 		Name:              "NILAN Room humidity (actual)",
@@ -46,8 +46,8 @@ func Humidity() SimpleConfig {
 	}
 }
 
-func HumidityAvg() SimpleConfig {
-	return SimpleConfig{
+func HumidityAvg() Sensor {
+	return Sensor{
 		DeviceClass:       "humidity",
 		Device:            NilanDevice(),
 		Name:              "NILAN Room humidity (average)",
@@ -58,8 +58,8 @@ func HumidityAvg() SimpleConfig {
 	}
 }
 
-func DHWTemperatureTop() SimpleConfig {
-	return SimpleConfig{
+func DHWTemperatureTop() Sensor {
+	return Sensor{
 		DeviceClass:       "temperature",
 		Device:            NilanDevice(),
 		Name:              "NILAN DHW tank temperature (top)",
@@ -70,8 +70,8 @@ func DHWTemperatureTop() SimpleConfig {
 	}
 }
 
-func DHWTemperatureBottom() SimpleConfig {
-	return SimpleConfig{
+func DHWTemperatureBottom() Sensor {
+	return Sensor{
 		DeviceClass:       "temperature",
 		Device:            NilanDevice(),
 		Name:              "NILAN DHW tank temperature (bottom)",
@@ -82,8 +82,8 @@ func DHWTemperatureBottom() SimpleConfig {
 	}
 }
 
-func SupplyFlowTemperature() SimpleConfig {
-	return SimpleConfig{
+func SupplyFlowTemperature() Sensor {
+	return Sensor{
 		DeviceClass:       "temperature",
 		Device:            NilanDevice(),
 		Name:              "NILAN Supply flow temperature",

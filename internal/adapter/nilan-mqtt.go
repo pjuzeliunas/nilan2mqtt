@@ -137,7 +137,7 @@ func (a *NilanMQTTAdapter) tryConnectToMQTT(attempts int) {
 	}
 }
 
-func (a *NilanMQTTAdapter) sendSimpleConfig(topic string, config config.SimpleConfig) {
+func (a *NilanMQTTAdapter) sendSensorConfig(topic string, config config.Sensor) {
 	d, _ := json.Marshal(config)
 	t := a.mqttClient.Publish(topic, 0, false, d)
 	t.Wait()
@@ -150,13 +150,13 @@ func (a *NilanMQTTAdapter) sendFanConfig(topic string, config config.Fan) {
 }
 
 func (a *NilanMQTTAdapter) sendConfig() {
-	a.sendSimpleConfig("homeassistant/sensor/nilan/1/config", config.RoomTemperature())
-	a.sendSimpleConfig("homeassistant/sensor/nilan/2/config", config.OutdoorTemperature())
-	a.sendSimpleConfig("homeassistant/sensor/nilan/3/config", config.HumidityAvg())
-	a.sendSimpleConfig("homeassistant/sensor/nilan/4/config", config.Humidity())
-	a.sendSimpleConfig("homeassistant/sensor/nilan/5/config", config.DHWTemperatureTop())
-	a.sendSimpleConfig("homeassistant/sensor/nilan/6/config", config.DHWTemperatureBottom())
-	a.sendSimpleConfig("homeassistant/sensor/nilan/7/config", config.SupplyFlowTemperature())
+	a.sendSensorConfig("homeassistant/sensor/nilan/1/config", config.RoomTemperature())
+	a.sendSensorConfig("homeassistant/sensor/nilan/2/config", config.OutdoorTemperature())
+	a.sendSensorConfig("homeassistant/sensor/nilan/3/config", config.HumidityAvg())
+	a.sendSensorConfig("homeassistant/sensor/nilan/4/config", config.Humidity())
+	a.sendSensorConfig("homeassistant/sensor/nilan/5/config", config.DHWTemperatureTop())
+	a.sendSensorConfig("homeassistant/sensor/nilan/6/config", config.DHWTemperatureBottom())
+	a.sendSensorConfig("homeassistant/sensor/nilan/7/config", config.SupplyFlowTemperature())
 	a.sendFanConfig("homeassistant/fan/nilan/config", config.NilanVentilation())
 }
 
