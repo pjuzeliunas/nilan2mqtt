@@ -39,10 +39,10 @@ func NewNilanMQTTAdapter(nilanAddress string, mqttBrokerAddress string, mqttUser
 
 func (a *NilanMQTTAdapter) Start() {
 	a.running = true
-	a.tryConnectToMQTT(0)
+	a.tryConnectToMQTT(12)
 	log.Default().Println("connection to MQTT broker established")
 	log.Default().Println("sending HA configuration via MQTT")
-	a.sendConfig()
+	a.sendAllConfigs()
 
 	a.readingsChan = make(chan nilan.Readings)
 	a.settingsChan = make(chan nilan.Settings)
@@ -56,7 +56,6 @@ func (a *NilanMQTTAdapter) Start() {
 }
 
 func (a *NilanMQTTAdapter) Stop() {
-
 	a.running = false
 	a.mqttClient.Disconnect(5000)
 }
@@ -80,6 +79,8 @@ func (a *NilanMQTTAdapter) subscribeForTopics() {
 		"nilan/fan/set",
 		"nilan/fan/speed/set",
 		"nilan/fan/mode/set",
+		"nilan/dhw/set",
+		"nilan/heating/set",
 	}
 	for _, t := range topics {
 		token := a.mqttClient.Subscribe(t, 1, a.processMessage)
@@ -93,7 +94,7 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 	switch msg.Topic() {
 	case "nilan/fan/set":
 		settings := nilan.Settings{
-			VentilationOnPause: boolAddr(payload == "OFF"),
+			VentilationOnPause: config.OnOffVal(payload),
 		}
 		a.nilanController.SendSettings(settings)
 		a.fetchSettings()
@@ -101,9 +102,9 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 		speed, _ := strconv.Atoi(payload)
 		settings := nilan.Settings{}
 		if speed == 0 {
-			settings.VentilationOnPause = boolAddr(true)
+			settings.VentilationOnPause = config.BoolAddr(true)
 		} else {
-			settings.VentilationOnPause = boolAddr(false)
+			settings.VentilationOnPause = config.BoolAddr(false)
 			settings.FanSpeed = dto.FanSpeed(speed)
 		}
 		a.nilanController.SendSettings(settings)
@@ -114,12 +115,19 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 		}
 		a.nilanController.SendSettings(settings)
 		a.fetchSettings()
+	case "nilan/dhw/set":
+		settings := nilan.Settings{
+			DHWProductionPaused: config.BoolAddr(payload == "OFF"),
+		}
+		a.nilanController.SendSettings(settings)
+		a.fetchSettings()
+	case "nilan/heating/set":
+		settings := nilan.Settings{
+			CentralHeatingPaused: config.BoolAddr(payload == "OFF"),
+		}
+		a.nilanController.SendSettings(settings)
+		a.fetchSettings()
 	}
-}
-
-func boolAddr(b bool) *bool {
-	boolVar := b
-	return &boolVar
 }
 
 func (a *NilanMQTTAdapter) reconnect(client mqtt.Client, err error) {
@@ -137,27 +145,23 @@ func (a *NilanMQTTAdapter) tryConnectToMQTT(attempts int) {
 	}
 }
 
-func (a *NilanMQTTAdapter) sendSensorConfig(topic string, config config.Sensor) {
+func (a *NilanMQTTAdapter) sendConfig(topic string, config interface{}) {
 	d, _ := json.Marshal(config)
 	t := a.mqttClient.Publish(topic, 0, false, d)
 	t.Wait()
 }
 
-func (a *NilanMQTTAdapter) sendFanConfig(topic string, config config.Fan) {
-	d, _ := json.Marshal(config)
-	t := a.mqttClient.Publish(topic, 0, false, d)
-	t.Wait()
-}
-
-func (a *NilanMQTTAdapter) sendConfig() {
-	a.sendSensorConfig("homeassistant/sensor/nilan/1/config", config.RoomTemperature())
-	a.sendSensorConfig("homeassistant/sensor/nilan/2/config", config.OutdoorTemperature())
-	a.sendSensorConfig("homeassistant/sensor/nilan/3/config", config.HumidityAvg())
-	a.sendSensorConfig("homeassistant/sensor/nilan/4/config", config.Humidity())
-	a.sendSensorConfig("homeassistant/sensor/nilan/5/config", config.DHWTemperatureTop())
-	a.sendSensorConfig("homeassistant/sensor/nilan/6/config", config.DHWTemperatureBottom())
-	a.sendSensorConfig("homeassistant/sensor/nilan/7/config", config.SupplyFlowTemperature())
-	a.sendFanConfig("homeassistant/fan/nilan/config", config.NilanVentilation())
+func (a *NilanMQTTAdapter) sendAllConfigs() {
+	a.sendConfig("homeassistant/sensor/nilan/1/config", config.RoomTemperature())
+	a.sendConfig("homeassistant/sensor/nilan/2/config", config.OutdoorTemperature())
+	a.sendConfig("homeassistant/sensor/nilan/3/config", config.HumidityAvg())
+	a.sendConfig("homeassistant/sensor/nilan/4/config", config.Humidity())
+	a.sendConfig("homeassistant/sensor/nilan/5/config", config.DHWTemperatureTop())
+	a.sendConfig("homeassistant/sensor/nilan/6/config", config.DHWTemperatureBottom())
+	a.sendConfig("homeassistant/sensor/nilan/7/config", config.SupplyFlowTemperature())
+	a.sendConfig("homeassistant/fan/nilan/config", config.NilanVentilation())
+	a.sendConfig("homeassistant/switch/nilan/1/config", config.DHWSwitch())
+	a.sendConfig("homeassistant/switch/nilan/2/config", config.CentralHeatingSwitch())
 }
 
 func (a *NilanMQTTAdapter) startFetchingNilanData() {
@@ -204,11 +208,23 @@ func (a *NilanMQTTAdapter) startPublishingSettings() {
 	for settings := range a.settingsChan {
 		ventilationDTO := dto.CreateVentilationDTO(settings)
 		a.publishVentilationState(ventilationDTO)
+		a.publishDHWState(!*settings.DHWProductionPaused)
+		a.publishCentralHeatingState(!*settings.CentralHeatingPaused)
 	}
 }
 
 func (a *NilanMQTTAdapter) publishVentilationState(ventilationState dto.Ventilation) {
 	d, _ := json.Marshal(ventilationState)
 	t := a.mqttClient.Publish("nilan/fan/state", 0, false, d)
+	t.Wait()
+}
+
+func (a *NilanMQTTAdapter) publishDHWState(on bool) {
+	t := a.mqttClient.Publish("nilan/dhw/state", 0, false, config.OnOffString(on))
+	t.Wait()
+}
+
+func (a *NilanMQTTAdapter) publishCentralHeatingState(on bool) {
+	t := a.mqttClient.Publish("nilan/heating/state", 0, false, config.OnOffString(on))
 	t.Wait()
 }
