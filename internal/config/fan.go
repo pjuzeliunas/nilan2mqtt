@@ -1,6 +1,7 @@
 package config
 
 type Fan struct {
+	Device                       Device   `json:"device"`
 	Name                         string   `json:"name"`
 	CommandTopic                 string   `json:"command_topic"`
 	PercentageStateTopic         string   `json:"percentage_state_topic"`
@@ -19,6 +20,7 @@ type Fan struct {
 
 func NilanVentilation() Fan {
 	return Fan{
+		Device:                       NilanDevice(),
 		Name:                         "NILAN Ventilation",
 		CommandTopic:                 "nilan/fan/set",
 		PercentageStateTopic:         "nilan/fan/state",

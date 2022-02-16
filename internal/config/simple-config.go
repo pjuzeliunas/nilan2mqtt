@@ -2,6 +2,7 @@ package config
 
 type SimpleConfig struct {
 	DeviceClass       string `json:"device_class"`
+	Device            Device `json:"device"`
 	Name              string `json:"name"`
 	StateTopic        string `json:"state_topic"`
 	UnitOfMeasurement string `json:"unit_of_measurement"`
@@ -12,6 +13,7 @@ type SimpleConfig struct {
 func RoomTemperature() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "temperature",
+		Device:            NilanDevice(),
 		Name:              "NILAN Room temperature",
 		StateTopic:        "nilan/readings/state",
 		UnitOfMeasurement: "°C",
@@ -23,6 +25,7 @@ func RoomTemperature() SimpleConfig {
 func OutdoorTemperature() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "temperature",
+		Device:            NilanDevice(),
 		Name:              "NILAN Outdoor temperature",
 		StateTopic:        "nilan/readings/state",
 		UnitOfMeasurement: "°C",
@@ -34,6 +37,7 @@ func OutdoorTemperature() SimpleConfig {
 func Humidity() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "humidity",
+		Device:            NilanDevice(),
 		Name:              "NILAN Room humidity (actual)",
 		StateTopic:        "nilan/readings/state",
 		UnitOfMeasurement: "%",
@@ -45,6 +49,7 @@ func Humidity() SimpleConfig {
 func HumidityAvg() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "humidity",
+		Device:            NilanDevice(),
 		Name:              "NILAN Room humidity (average)",
 		StateTopic:        "nilan/readings/state",
 		UnitOfMeasurement: "%",
@@ -56,6 +61,7 @@ func HumidityAvg() SimpleConfig {
 func DHWTemperatureTop() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "temperature",
+		Device:            NilanDevice(),
 		Name:              "NILAN DHW tank temperature (top)",
 		StateTopic:        "nilan/readings/state",
 		UnitOfMeasurement: "°C",
@@ -67,6 +73,7 @@ func DHWTemperatureTop() SimpleConfig {
 func DHWTemperatureBottom() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "temperature",
+		Device:            NilanDevice(),
 		Name:              "NILAN DHW tank temperature (bottom)",
 		StateTopic:        "nilan/readings/state",
 		UnitOfMeasurement: "°C",
@@ -78,6 +85,7 @@ func DHWTemperatureBottom() SimpleConfig {
 func SupplyFlowTemperature() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "temperature",
+		Device:            NilanDevice(),
 		Name:              "NILAN Supply flow temperature",
 		StateTopic:        "nilan/readings/state",
 		UnitOfMeasurement: "°C",
