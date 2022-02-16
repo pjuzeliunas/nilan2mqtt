@@ -21,6 +21,11 @@ func clearAll(client mqtt.Client) {
 	clear(client, "homeassistant/sensor/nilan/6/config")
 	clear(client, "homeassistant/sensor/nilan/7/config")
 	clear(client, "homeassistant/fan/nilan/config")
+	clear(client, "homeassistant/switch/nilan/1/config")
+	clear(client, "homeassistant/switch/nilan/2/config")
+	clear(client, "homeassistant/number/nilan/1/config")
+	clear(client, "homeassistant/number/nilan/2/config")
+	clear(client, "homeassistant/number/nilan/3/config")
 }
 
 func mqttClient(brokerAddress string, port int, username string, password string) mqtt.Client {
