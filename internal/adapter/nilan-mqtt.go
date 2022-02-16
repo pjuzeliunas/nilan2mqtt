@@ -22,6 +22,8 @@ type NilanMQTTAdapter struct {
 	settingsChan chan nilan.Settings
 
 	running bool
+	// update frequency in seconds, default: 15
+	updateFrequency int
 }
 
 func NewNilanMQTTAdapter(nilanAddress string, mqttBrokerAddress string, mqttUsername string, mqttPassword string) NilanMQTTAdapter {
@@ -30,6 +32,7 @@ func NewNilanMQTTAdapter(nilanAddress string, mqttBrokerAddress string, mqttUser
 	a.setUpController(nilanAddress)
 	a.setUpMQTTClient(mqttBrokerAddress, mqttUsername, mqttPassword)
 	a.running = false
+	a.updateFrequency = 15
 
 	return a
 }
@@ -49,10 +52,11 @@ func (a *NilanMQTTAdapter) Start() {
 	go a.startPublishingSettings()
 
 	a.subscribeForTopics()
+	log.Default().Println("nilan2mqtt is running")
 }
 
 func (a *NilanMQTTAdapter) Stop() {
-	log.Default().Println("stopping")
+
 	a.running = false
 	a.mqttClient.Disconnect(5000)
 }
@@ -160,13 +164,12 @@ func (a *NilanMQTTAdapter) startFetchingNilanData() {
 	for a.running {
 		a.fetchReadings()
 		a.fetchSettings()
-		time.Sleep(time.Second * 5)
+		time.Sleep(time.Second * time.Duration(a.updateFrequency))
 	}
 	close(a.readingsChan)
 }
 
 func (a *NilanMQTTAdapter) fetchReadings() {
-	log.Default().Println("fetching readings from Nilan")
 	readings, err := a.nilanController.FetchReadings()
 	if err != nil {
 		log.Default().Printf("error (fetch readings) - %s\n", err)
@@ -176,7 +179,6 @@ func (a *NilanMQTTAdapter) fetchReadings() {
 }
 
 func (a *NilanMQTTAdapter) fetchSettings() {
-	log.Default().Println("fetching settings from Nilan")
 	settings, err := a.nilanController.FetchSettings()
 	if err != nil {
 		log.Default().Printf("error (fetch settings) - %s\n", err)
@@ -193,7 +195,6 @@ func (a *NilanMQTTAdapter) startPublishingReadings() {
 }
 
 func (a *NilanMQTTAdapter) publishReadings(readings dto.Readings) {
-	log.Default().Println("publishing Nilan readings via MQTT")
 	d, _ := json.Marshal(readings)
 	t := a.mqttClient.Publish("homeassistant/sensor/nilan/state", 0, false, d)
 	t.Wait()
@@ -207,7 +208,6 @@ func (a *NilanMQTTAdapter) startPublishingSettings() {
 }
 
 func (a *NilanMQTTAdapter) publishVentilationState(ventilationState dto.Ventilation) {
-	log.Default().Println("publishing Nilan settings via MQTT")
 	d, _ := json.Marshal(ventilationState)
 	t := a.mqttClient.Publish("homeassistant/fan/nilan/state", 0, false, d)
 	t.Wait()

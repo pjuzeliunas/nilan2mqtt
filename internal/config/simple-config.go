@@ -67,7 +67,7 @@ func DHWTemperatureTop() SimpleConfig {
 func DHWTemperatureBottom() SimpleConfig {
 	return SimpleConfig{
 		DeviceClass:       "temperature",
-		Name:              "NILAN HW tank temperature (bottom)",
+		Name:              "NILAN DHW tank temperature (bottom)",
 		StateTopic:        "homeassistant/sensor/nilan/state",
 		UnitOfMeasurement: "°C",
 		ValueTemplate:     "{{ value_json.dhw_bottom_temp }}",

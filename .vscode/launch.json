@@ -14,6 +14,13 @@
                 "NILAN_ADDR": "192.168.1.31:502",
                 "MQTT_ADDR": "192.168.1.18:1883"
             }
+        },
+        {
+            "name": "Clear",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "program": "${workspaceFolder}/cmd/clear/main.go"
         }
     ]
 }
