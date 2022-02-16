@@ -20,6 +20,7 @@ type NilanMQTTAdapter struct {
 
 	readingsChan chan nilan.Readings
 	settingsChan chan nilan.Settings
+	errorsChan   chan nilan.Errors
 
 	running bool
 	// update frequency in seconds, default: 15
@@ -46,10 +47,12 @@ func (a *NilanMQTTAdapter) Start() {
 
 	a.readingsChan = make(chan nilan.Readings)
 	a.settingsChan = make(chan nilan.Settings)
+	a.errorsChan = make(chan nilan.Errors)
 
 	go a.startFetchingNilanData()
 	go a.startPublishingReadings()
 	go a.startPublishingSettings()
+	go a.startPublishingErrors()
 
 	a.subscribeForTopics()
 	log.Default().Println("nilan2mqtt is running")
@@ -192,12 +195,15 @@ func (a *NilanMQTTAdapter) sendAllConfigs() {
 	a.sendConfig("homeassistant/number/nilan/1/config", config.RoomTemperatureSetpoint())
 	a.sendConfig("homeassistant/number/nilan/2/config", config.DHWTemperatureSetpoint())
 	a.sendConfig("homeassistant/number/nilan/3/config", config.SupplyFlowSetpoint())
+	a.sendConfig("homeassistant/binary_sensor/nilan/1/config", config.OldFilterSensor())
+	a.sendConfig("homeassistant/binary_sensor/nilan/2/config", config.ErrorSensor())
 }
 
 func (a *NilanMQTTAdapter) startFetchingNilanData() {
 	for a.running {
 		a.fetchReadings()
 		a.fetchSettings()
+		a.fetchErrors()
 		time.Sleep(time.Second * time.Duration(a.updateFrequency))
 	}
 	close(a.readingsChan)
@@ -221,23 +227,26 @@ func (a *NilanMQTTAdapter) fetchSettings() {
 	a.settingsChan <- *settings
 }
 
+func (a *NilanMQTTAdapter) fetchErrors() {
+	errors, err := a.nilanController.FetchErrors()
+	if err != nil {
+		log.Default().Printf("error (fetch errors) - %s\n", err)
+		return
+	}
+	a.errorsChan <- *errors
+}
+
 func (a *NilanMQTTAdapter) startPublishingReadings() {
 	for readings := range a.readingsChan {
 		readingsDTO := dto.CreateReadingsDTO(readings)
-		a.publishReadings(readingsDTO)
+		a.publish("nilan/readings/state", readingsDTO)
 	}
-}
-
-func (a *NilanMQTTAdapter) publishReadings(readings dto.Readings) {
-	d, _ := json.Marshal(readings)
-	t := a.mqttClient.Publish("nilan/readings/state", 0, false, d)
-	t.Wait()
 }
 
 func (a *NilanMQTTAdapter) startPublishingSettings() {
 	for settings := range a.settingsChan {
 		ventilationDTO := dto.CreateVentilationDTO(settings)
-		a.publishVentilationState(ventilationDTO)
+		a.publish("nilan/fan/state", ventilationDTO)
 		a.publishDHWState(!*settings.DHWProductionPaused)
 		a.publishCentralHeatingState(!*settings.CentralHeatingPaused)
 		a.publishRoomTemperatureSetpoint(*settings.DesiredRoomTemperature / 10)
@@ -246,9 +255,16 @@ func (a *NilanMQTTAdapter) startPublishingSettings() {
 	}
 }
 
-func (a *NilanMQTTAdapter) publishVentilationState(ventilationState dto.Ventilation) {
-	d, _ := json.Marshal(ventilationState)
-	t := a.mqttClient.Publish("nilan/fan/state", 0, false, d)
+func (a *NilanMQTTAdapter) startPublishingErrors() {
+	for errors := range a.errorsChan {
+		errorsDTO := dto.CreateErrorsDTO(errors)
+		a.publish("nilan/errors/state", errorsDTO)
+	}
+}
+
+func (a *NilanMQTTAdapter) publish(topic string, v interface{}) {
+	d, _ := json.Marshal(v)
+	t := a.mqttClient.Publish(topic, 0, false, d)
 	t.Wait()
 }
 

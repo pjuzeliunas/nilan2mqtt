@@ -5,7 +5,7 @@ go 1.17
 require (
 	github.com/eclipse/paho.mqtt.golang v1.3.5
 	github.com/google/uuid v1.3.0
-	github.com/pjuzeliunas/nilan v0.0.0-20220215202434-ef557d7b18cf
+	github.com/pjuzeliunas/nilan v0.0.0-20220216224035-ce2e7336326b
 )
 
 require (
