@@ -81,6 +81,9 @@ func (a *NilanMQTTAdapter) subscribeForTopics() {
 		"nilan/fan/mode/set",
 		"nilan/dhw/set",
 		"nilan/heating/set",
+		"nilan/room_temp/set",
+		"nilan/dhw/temp/set",
+		"nilan/supply/set",
 	}
 	for _, t := range topics {
 		token := a.mqttClient.Subscribe(t, 1, a.processMessage)
@@ -127,6 +130,30 @@ func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) 
 		}
 		a.nilanController.SendSettings(settings)
 		a.fetchSettings()
+	case "nilan/room_temp/set":
+		temp, _ := strconv.Atoi(payload)
+		temp *= 10
+		settings := nilan.Settings{
+			DesiredRoomTemperature: &temp,
+		}
+		a.nilanController.SendSettings(settings)
+		a.fetchSettings()
+	case "nilan/dhw/temp/set":
+		temp, _ := strconv.Atoi(payload)
+		temp *= 10
+		settings := nilan.Settings{
+			DesiredDHWTemperature: &temp,
+		}
+		a.nilanController.SendSettings(settings)
+		a.fetchSettings()
+	case "nilan/supply/set":
+		temp, _ := strconv.Atoi(payload)
+		temp *= 10
+		settings := nilan.Settings{
+			SetpointSupplyTemperature: &temp,
+		}
+		a.nilanController.SendSettings(settings)
+		a.fetchSettings()
 	}
 }
 
@@ -162,6 +189,9 @@ func (a *NilanMQTTAdapter) sendAllConfigs() {
 	a.sendConfig("homeassistant/fan/nilan/config", config.NilanVentilation())
 	a.sendConfig("homeassistant/switch/nilan/1/config", config.DHWSwitch())
 	a.sendConfig("homeassistant/switch/nilan/2/config", config.CentralHeatingSwitch())
+	a.sendConfig("homeassistant/number/nilan/1/config", config.RoomTemperatureSetpoint())
+	a.sendConfig("homeassistant/number/nilan/2/config", config.DHWTemperatureSetpoint())
+	a.sendConfig("homeassistant/number/nilan/3/config", config.SupplyFlowSetpoint())
 }
 
 func (a *NilanMQTTAdapter) startFetchingNilanData() {
@@ -210,6 +240,9 @@ func (a *NilanMQTTAdapter) startPublishingSettings() {
 		a.publishVentilationState(ventilationDTO)
 		a.publishDHWState(!*settings.DHWProductionPaused)
 		a.publishCentralHeatingState(!*settings.CentralHeatingPaused)
+		a.publishRoomTemperatureSetpoint(*settings.DesiredRoomTemperature / 10)
+		a.publishDHWSetpoint(*settings.DesiredDHWTemperature / 10)
+		a.publishSupplyFlowSetpoint(*settings.SetpointSupplyTemperature / 10)
 	}
 }
 
@@ -226,5 +259,20 @@ func (a *NilanMQTTAdapter) publishDHWState(on bool) {
 
 func (a *NilanMQTTAdapter) publishCentralHeatingState(on bool) {
 	t := a.mqttClient.Publish("nilan/heating/state", 0, false, config.OnOffString(on))
+	t.Wait()
+}
+
+func (a *NilanMQTTAdapter) publishRoomTemperatureSetpoint(temp int) {
+	t := a.mqttClient.Publish("nilan/room_temp/state", 0, false, strconv.Itoa(temp))
+	t.Wait()
+}
+
+func (a *NilanMQTTAdapter) publishDHWSetpoint(temp int) {
+	t := a.mqttClient.Publish("nilan/dhw/temp/state", 0, false, strconv.Itoa(temp))
+	t.Wait()
+}
+
+func (a *NilanMQTTAdapter) publishSupplyFlowSetpoint(temp int) {
+	t := a.mqttClient.Publish("nilan/supply/state", 0, false, strconv.Itoa(temp))
 	t.Wait()
 }
