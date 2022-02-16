@@ -15,6 +15,7 @@ jobs:
     
     - name: Build the Docker image
       run: |
+        docker run --rm --privileged tonistiigi/binfmt:latest --install all
         docker buildx create --name mybuilder --use
         docker buildx build --platform linux/arm/v7,linux/amd64 -t pjuzeliunas/nilan2mqtt:dev .
 
