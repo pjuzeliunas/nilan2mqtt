@@ -206,21 +206,21 @@ func (a *NilanMQTTAdapter) fetchErrors() {
 func (a *NilanMQTTAdapter) startPublishingReadings() {
 	for readings := range a.readingsChan {
 		readingsDTO := dto.CreateReadingsDTO(readings)
-		a.publish("nilan/readings", readingsDTO)
+		a.publish(dto.ReadingsTopic, readingsDTO)
 	}
 }
 
 func (a *NilanMQTTAdapter) startPublishingSettings() {
 	for settings := range a.settingsChan {
 		settingsDTO := dto.CreateSettingsDTO(settings)
-		a.publish("nilan/settings", settingsDTO)
+		a.publish(dto.SettingsTopic, settingsDTO)
 	}
 }
 
 func (a *NilanMQTTAdapter) startPublishingErrors() {
 	for errors := range a.errorsChan {
 		errorsDTO := dto.CreateErrorsDTO(errors)
-		a.publish("nilan/errors", errorsDTO)
+		a.publish(dto.ErrorsTopic, errorsDTO)
 	}
 }
 

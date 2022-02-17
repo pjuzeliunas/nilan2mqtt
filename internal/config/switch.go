@@ -1,5 +1,7 @@
 package config
 
+import "github.com/pjuzeliunas/nilan2mqtt/internal/dto"
+
 type Switch struct {
 	CommandTopic       string `json:"command_topic"`
 	Device             Device `json:"device"`
@@ -16,7 +18,7 @@ func DHWSwitch() Switch {
 		Device:             NilanDevice(),
 		Icon:               "mdi:water-pump",
 		Name:               "NILAN Domestic Hot Water",
-		StateTopic:         "nilan/settings",
+		StateTopic:         dto.SettingsTopic,
 		StateValueTemplate: "{{ value_json.dhw_state }}",
 		UniqueId:           "b7e46b2f-5575-40a1-a690-233d55cd33bf",
 	}
@@ -28,7 +30,7 @@ func CentralHeatingSwitch() Switch {
 		Device:             NilanDevice(),
 		Icon:               "mdi:radiator",
 		Name:               "NILAN Central Heating",
-		StateTopic:         "nilan/settings",
+		StateTopic:         dto.SettingsTopic,
 		StateValueTemplate: "{{ value_json.central_heating_state }}",
 		UniqueId:           "fb1e0156-9250-4c78-a8c0-44113132062c",
 	}

@@ -12,6 +12,8 @@ type Readings struct {
 	SupplyFlowTemperature    float32 `json:"supply_temp"`
 }
 
+const ReadingsTopic string = "nilan/readings"
+
 func CreateReadingsDTO(readings nilan.Readings) Readings {
 	return Readings{
 		RoomTemperature:          temperature(readings.RoomTemperature),

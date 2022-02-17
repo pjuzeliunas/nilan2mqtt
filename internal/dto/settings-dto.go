@@ -15,6 +15,8 @@ type SettingsDTO struct {
 	SupplySetpoint      int    `json:"supply_flow_setpoint"`
 }
 
+const SettingsTopic string = "nilan/settings"
+
 func CreateSettingsDTO(settings nilan.Settings) SettingsDTO {
 	return SettingsDTO{
 		FanState:            ventilationState(settings),

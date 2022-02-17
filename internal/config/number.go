@@ -1,6 +1,10 @@
 package config
 
-import "strconv"
+import (
+	"strconv"
+
+	"github.com/pjuzeliunas/nilan2mqtt/internal/dto"
+)
 
 type Number struct {
 	CommandTopic      string  `json:"command_topic"`
@@ -24,7 +28,7 @@ func RoomTemperatureSetpoint() Number {
 		Min:               5.0,
 		Max:               40.0,
 		Name:              "NILAN Room temperature setting",
-		StateTopic:        "nilan/settings",
+		StateTopic:        dto.SettingsTopic,
 		ValueTemplate:     "{{ value_json.room_temp_setpoint }}",
 		Step:              1.0,
 		UnitOfMeasurement: "°C",
@@ -40,7 +44,7 @@ func DHWTemperatureSetpoint() Number {
 		Min:               10.0,
 		Max:               60.0,
 		Name:              "NILAN DHW temperature setting",
-		StateTopic:        "nilan/settings",
+		StateTopic:        dto.SettingsTopic,
 		ValueTemplate:     "{{ value_json.dhw_setpoint }}",
 		Step:              1.0,
 		UnitOfMeasurement: "°C",
@@ -56,7 +60,7 @@ func SupplyFlowSetpoint() Number {
 		Min:               5.0,
 		Max:               50.0,
 		Name:              "NILAN Supply flow temperature setting",
-		StateTopic:        "nilan/settings",
+		StateTopic:        dto.SettingsTopic,
 		ValueTemplate:     "{{ value_json.supply_flow_setpoint }}",
 		Step:              1.0,
 		UnitOfMeasurement: "°C",

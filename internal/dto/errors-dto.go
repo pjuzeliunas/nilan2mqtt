@@ -7,6 +7,8 @@ type ErrorsDTO struct {
 	OtherErrors string `json:"other_errors"`
 }
 
+const ErrorsTopic string = "nilan/errors"
+
 func CreateErrorsDTO(errors nilan.Errors) ErrorsDTO {
 	return ErrorsDTO{
 		OldFilter:   onOffString(errors.OldFilterWarning),

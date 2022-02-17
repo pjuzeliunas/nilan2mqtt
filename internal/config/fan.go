@@ -1,5 +1,7 @@
 package config
 
+import "github.com/pjuzeliunas/nilan2mqtt/internal/dto"
+
 type Fan struct {
 	Device                       Device   `json:"device"`
 	Name                         string   `json:"name"`
@@ -23,16 +25,16 @@ func NilanVentilation() Fan {
 		Device:                       NilanDevice(),
 		Name:                         "NILAN Ventilation",
 		CommandTopic:                 "nilan/fan/set",
-		PercentageStateTopic:         "nilan/settings",
+		PercentageStateTopic:         dto.SettingsTopic,
 		PercentageStateValueTemplate: "{{ value_json.fan_speed }}",
 		PercentageCommandTopic:       "nilan/fan/speed/set",
-		PresetModeStateTopic:         "nilan/settings",
+		PresetModeStateTopic:         dto.SettingsTopic,
 		PresetModeValueTemplate:      "{{ value_json.fan_mode }}",
 		PresetModeCommandTopic:       "nilan/fan/mode/set",
 		PresetModes:                  []string{"auto", "heating", "cooling"},
 		SpeedRangeMin:                1,
 		SpeedRangeMax:                4,
-		StateTopic:                   "nilan/settings",
+		StateTopic:                   dto.SettingsTopic,
 		StateValueTemplate:           "{{ value_json.fan_state }}",
 		UniqueId:                     "3d5c2bc2-a192-4c4a-9171-a23b4ba6c16c",
 	}
