@@ -1,3 +1,5 @@
+[![Quality Gate Status](https://sonarcloud.io/api/project_badges/measure?project=pjuzeliunas_nilan2mqtt&metric=alert_status)](https://sonarcloud.io/summary/new_code?id=pjuzeliunas_nilan2mqtt)
+
 NOTE: Development is in progress.
 
 **nilan2mqtt** fetches Nilan (R) heatpump CTS700 readings and settings via modbus and sends them to MQTT broker in regular intervals. It also executes commands retrieved from MQTT. Compatible with Home Assistant.
