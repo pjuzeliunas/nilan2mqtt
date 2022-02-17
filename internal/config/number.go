@@ -8,6 +8,7 @@ type Number struct {
 	Max               float32 `json:"max"`
 	Name              string  `json:"name"`
 	StateTopic        string  `json:"state_topic"`
+	ValueTemplate     string  `json:"value_template"`
 	Step              float32 `json:"step"`
 	UnitOfMeasurement string  `json:"unit_of_measurement"`
 	UniqueId          string  `json:"unique_id"`
@@ -21,7 +22,8 @@ func RoomTemperatureSetpoint() Number {
 		Min:               5.0,
 		Max:               40.0,
 		Name:              "NILAN Room temperature setting",
-		StateTopic:        "nilan/room_temp/state",
+		StateTopic:        "nilan/settings",
+		ValueTemplate:     "{{ value_json.room_temp_setpoint }}",
 		Step:              1.0,
 		UnitOfMeasurement: "°C",
 		UniqueId:          "071347f8-2eef-4e21-9cb0-f35b6dbb3f5b",
@@ -36,7 +38,8 @@ func DHWTemperatureSetpoint() Number {
 		Min:               10.0,
 		Max:               60.0,
 		Name:              "NILAN DHW temperature setting",
-		StateTopic:        "nilan/dhw/temp/state",
+		StateTopic:        "nilan/settings",
+		ValueTemplate:     "{{ value_json.dhw_setpoint }}",
 		Step:              1.0,
 		UnitOfMeasurement: "°C",
 		UniqueId:          "67d522bb-21ff-4c22-ab25-a312150c6132",
@@ -51,7 +54,8 @@ func SupplyFlowSetpoint() Number {
 		Min:               5.0,
 		Max:               50.0,
 		Name:              "NILAN Supply flow temperature setting",
-		StateTopic:        "nilan/supply/state",
+		StateTopic:        "nilan/settings",
+		ValueTemplate:     "{{ value_json.supply_flow_setpoint }}",
 		Step:              1.0,
 		UnitOfMeasurement: "°C",
 		UniqueId:          "177b37a2-ca7c-4188-894b-6a797b95de34",

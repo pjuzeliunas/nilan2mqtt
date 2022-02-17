@@ -239,56 +239,26 @@ func (a *NilanMQTTAdapter) fetchErrors() {
 func (a *NilanMQTTAdapter) startPublishingReadings() {
 	for readings := range a.readingsChan {
 		readingsDTO := dto.CreateReadingsDTO(readings)
-		a.publish("nilan/readings/state", readingsDTO)
+		a.publish("nilan/readings", readingsDTO)
 	}
 }
 
 func (a *NilanMQTTAdapter) startPublishingSettings() {
 	for settings := range a.settingsChan {
-		ventilationDTO := dto.CreateVentilationDTO(settings)
-		a.publish("nilan/fan/state", ventilationDTO)
-		a.publishDHWState(!*settings.DHWProductionPaused)
-		a.publishCentralHeatingState(!*settings.CentralHeatingPaused)
-		a.publishRoomTemperatureSetpoint(*settings.DesiredRoomTemperature / 10)
-		a.publishDHWSetpoint(*settings.DesiredDHWTemperature / 10)
-		a.publishSupplyFlowSetpoint(*settings.SetpointSupplyTemperature / 10)
+		settingsDTO := dto.CreateSettingsDTO(settings)
+		a.publish("nilan/settings", settingsDTO)
 	}
 }
 
 func (a *NilanMQTTAdapter) startPublishingErrors() {
 	for errors := range a.errorsChan {
 		errorsDTO := dto.CreateErrorsDTO(errors)
-		a.publish("nilan/errors/state", errorsDTO)
+		a.publish("nilan/errors", errorsDTO)
 	}
 }
 
 func (a *NilanMQTTAdapter) publish(topic string, v interface{}) {
 	d, _ := json.Marshal(v)
 	t := a.mqttClient.Publish(topic, 0, false, d)
-	t.Wait()
-}
-
-func (a *NilanMQTTAdapter) publishDHWState(on bool) {
-	t := a.mqttClient.Publish("nilan/dhw/state", 0, false, config.OnOffString(on))
-	t.Wait()
-}
-
-func (a *NilanMQTTAdapter) publishCentralHeatingState(on bool) {
-	t := a.mqttClient.Publish("nilan/heating/state", 0, false, config.OnOffString(on))
-	t.Wait()
-}
-
-func (a *NilanMQTTAdapter) publishRoomTemperatureSetpoint(temp int) {
-	t := a.mqttClient.Publish("nilan/room_temp/state", 0, false, strconv.Itoa(temp))
-	t.Wait()
-}
-
-func (a *NilanMQTTAdapter) publishDHWSetpoint(temp int) {
-	t := a.mqttClient.Publish("nilan/dhw/temp/state", 0, false, strconv.Itoa(temp))
-	t.Wait()
-}
-
-func (a *NilanMQTTAdapter) publishSupplyFlowSetpoint(temp int) {
-	t := a.mqttClient.Publish("nilan/supply/state", 0, false, strconv.Itoa(temp))
 	t.Wait()
 }

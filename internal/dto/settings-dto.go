@@ -1,18 +1,30 @@
 package dto
 
-import "github.com/pjuzeliunas/nilan"
+import (
+	"github.com/pjuzeliunas/nilan"
+)
 
-type Ventilation struct {
-	State string `json:"state"`
-	Speed int    `json:"speed"`
-	Mode  string `json:"mode"`
+type SettingsDTO struct {
+	FanState            string `json:"fan_state"`
+	Speed               int    `json:"fan_speed"`
+	Mode                string `json:"fan_mode"`
+	DHWState            string `json:"dhw_state"`
+	CentralHeatingState string `json:"central_heating_state"`
+	RoomTempSetpoint    int    `json:"room_temp_setpoint"`
+	DHWSetpoint         int    `json:"dhw_setpoint"`
+	SupplySetpoint      int    `json:"supply_flow_setpoint"`
 }
 
-func CreateVentilationDTO(settings nilan.Settings) Ventilation {
-	return Ventilation{
-		State: ventilationState(settings),
-		Speed: ventilationSpeed(settings),
-		Mode:  ventilationMode(settings),
+func CreateSettingsDTO(settings nilan.Settings) SettingsDTO {
+	return SettingsDTO{
+		FanState:            ventilationState(settings),
+		Speed:               ventilationSpeed(settings),
+		Mode:                ventilationMode(settings),
+		DHWState:            onOffString(*settings.CentralHeatingIsOn),
+		CentralHeatingState: onOffString(!*settings.CentralHeatingPaused),
+		RoomTempSetpoint:    *settings.DesiredRoomTemperature / 10,
+		DHWSetpoint:         *settings.DesiredDHWTemperature / 10,
+		SupplySetpoint:      *settings.SetpointSupplyTemperature / 10,
 	}
 }
 
@@ -89,4 +101,12 @@ func Mode(mode string) *int {
 func intAddr(i int) *int {
 	iVar := i
 	return &iVar
+}
+
+func OnOffString(on bool) string {
+	if on {
+		return "ON"
+	} else {
+		return "OFF"
+	}
 }
