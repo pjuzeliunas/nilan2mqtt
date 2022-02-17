@@ -78,7 +78,7 @@ func (a *NilanMQTTAdapter) setUpMQTTClient(address string, username string, pass
 }
 
 func (a *NilanMQTTAdapter) subscribeForTopics() {
-	topics := []string{
+	settingsTopics := []string{
 		"nilan/fan/set",
 		"nilan/fan/speed/set",
 		"nilan/fan/mode/set",
@@ -88,76 +88,43 @@ func (a *NilanMQTTAdapter) subscribeForTopics() {
 		"nilan/dhw/temp/set",
 		"nilan/supply/set",
 	}
-	for _, t := range topics {
-		token := a.mqttClient.Subscribe(t, 1, a.processMessage)
+	for _, t := range settingsTopics {
+		token := a.mqttClient.Subscribe(t, 1, a.processSettingsChangeMessage)
 		token.Wait()
 	}
 }
 
-func (a *NilanMQTTAdapter) processMessage(client mqtt.Client, msg mqtt.Message) {
+func (a *NilanMQTTAdapter) processSettingsChangeMessage(client mqtt.Client, msg mqtt.Message) {
 	log.Default().Printf("received message: %s from topic: %s\n", msg.Payload(), msg.Topic())
 	payload := string(msg.Payload())
+	var settings nilan.Settings
 	switch msg.Topic() {
 	case "nilan/fan/set":
-		settings := nilan.Settings{
-			VentilationOnPause: config.OnOffVal(payload),
-		}
-		a.nilanController.SendSettings(settings)
+		settings.VentilationOnPause = config.OnOffVal(payload)
 		a.fetchSettings()
 	case "nilan/fan/speed/set":
 		speed, _ := strconv.Atoi(payload)
-		settings := nilan.Settings{}
 		if speed == 0 {
 			settings.VentilationOnPause = config.BoolAddr(true)
 		} else {
 			settings.VentilationOnPause = config.BoolAddr(false)
 			settings.FanSpeed = dto.FanSpeed(speed)
 		}
-		a.nilanController.SendSettings(settings)
-		a.fetchSettings()
 	case "nilan/fan/mode/set":
-		settings := nilan.Settings{
-			VentilationMode: dto.Mode(payload),
-		}
-		a.nilanController.SendSettings(settings)
-		a.fetchSettings()
+		settings.VentilationMode = dto.Mode(payload)
 	case "nilan/dhw/set":
-		settings := nilan.Settings{
-			DHWProductionPaused: config.BoolAddr(payload == "OFF"),
-		}
-		a.nilanController.SendSettings(settings)
-		a.fetchSettings()
+		settings.DHWProductionPaused = config.BoolAddr(payload == "OFF")
 	case "nilan/heating/set":
-		settings := nilan.Settings{
-			CentralHeatingPaused: config.BoolAddr(payload == "OFF"),
-		}
-		a.nilanController.SendSettings(settings)
-		a.fetchSettings()
+		settings.CentralHeatingPaused = config.BoolAddr(payload == "OFF")
 	case "nilan/room_temp/set":
-		temp, _ := strconv.Atoi(payload)
-		temp *= 10
-		settings := nilan.Settings{
-			DesiredRoomTemperature: &temp,
-		}
-		a.nilanController.SendSettings(settings)
-		a.fetchSettings()
+		settings.DesiredRoomTemperature = config.TemperatureFromPayload(payload)
 	case "nilan/dhw/temp/set":
-		temp, _ := strconv.Atoi(payload)
-		temp *= 10
-		settings := nilan.Settings{
-			DesiredDHWTemperature: &temp,
-		}
-		a.nilanController.SendSettings(settings)
-		a.fetchSettings()
+		settings.DesiredDHWTemperature = config.TemperatureFromPayload(payload)
 	case "nilan/supply/set":
-		temp, _ := strconv.Atoi(payload)
-		temp *= 10
-		settings := nilan.Settings{
-			SetpointSupplyTemperature: &temp,
-		}
-		a.nilanController.SendSettings(settings)
-		a.fetchSettings()
+		settings.SetpointSupplyTemperature = config.TemperatureFromPayload(payload)
 	}
+	a.nilanController.SendSettings(settings)
+	a.fetchSettings()
 }
 
 func (a *NilanMQTTAdapter) reconnect(client mqtt.Client, err error) {

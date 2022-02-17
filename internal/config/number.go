@@ -1,5 +1,7 @@
 package config
 
+import "strconv"
+
 type Number struct {
 	CommandTopic      string  `json:"command_topic"`
 	Device            Device  `json:"device"`
@@ -60,4 +62,10 @@ func SupplyFlowSetpoint() Number {
 		UnitOfMeasurement: "°C",
 		UniqueId:          "177b37a2-ca7c-4188-894b-6a797b95de34",
 	}
+}
+
+func TemperatureFromPayload(payload string) *int {
+	temp, _ := strconv.Atoi(payload)
+	temp *= 10
+	return &temp
 }
