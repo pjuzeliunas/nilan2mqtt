@@ -8,7 +8,7 @@ import (
 )
 
 func clear(client mqtt.Client, topic string) {
-	t := client.Publish(topic, 0, false, "")
+	t := client.Publish(topic, 0, true, "")
 	t.Wait()
 }
 

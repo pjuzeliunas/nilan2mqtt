@@ -144,7 +144,7 @@ func (a *NilanMQTTAdapter) tryConnectToMQTT(attempts int) {
 
 func (a *NilanMQTTAdapter) sendConfig(topic string, config interface{}) {
 	d, _ := json.Marshal(config)
-	t := a.mqttClient.Publish(topic, 0, false, d)
+	t := a.mqttClient.Publish(topic, 0, true, d)
 	t.Wait()
 }
 
