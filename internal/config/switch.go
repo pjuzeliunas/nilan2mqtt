@@ -8,7 +8,7 @@ type Switch struct {
 	Icon               string `json:"icon"`
 	Name               string `json:"name"`
 	StateTopic         string `json:"state_topic"`
-	StateValueTemplate string `json:"state_value_template"`
+	StateValueTemplate string `json:"value_template"`
 	UniqueId           string `json:"unique_id"`
 }
 
