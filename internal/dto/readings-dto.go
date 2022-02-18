@@ -20,7 +20,7 @@ func CreateReadingsDTO(readings nilan.Readings) Readings {
 		OutdoorTemperature:       temperature(readings.OutdoorTemperature),
 		AverageHumidity:          readings.AverageHumidity,
 		ActualHumidity:           readings.ActualHumidity,
-		DHWTankTopTemperature:    temperature(readings.DHWTankBottomTemperature),
+		DHWTankTopTemperature:    temperature(readings.DHWTankTopTemperature),
 		DHWTankBottomTemperature: temperature(readings.DHWTankBottomTemperature),
 		SupplyFlowTemperature:    temperature(readings.SupplyFlowTemperature),
 	}
