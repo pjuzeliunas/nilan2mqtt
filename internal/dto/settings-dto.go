@@ -22,7 +22,7 @@ func CreateSettingsDTO(settings nilan.Settings) SettingsDTO {
 		FanState:            ventilationState(settings),
 		Speed:               ventilationSpeed(settings),
 		Mode:                ventilationMode(settings),
-		DHWState:            onOffString(*settings.CentralHeatingIsOn),
+		DHWState:            onOffString(!*settings.DHWProductionPaused),
 		CentralHeatingState: onOffString(!*settings.CentralHeatingPaused),
 		RoomTempSetpoint:    *settings.DesiredRoomTemperature / 10,
 		DHWSetpoint:         *settings.DesiredDHWTemperature / 10,
